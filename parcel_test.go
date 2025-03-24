@@ -49,10 +49,8 @@ func TestAddGetDelete(t *testing.T) {
 	// проверьте, что значения всех полей в полученном объекте совпадают со значениями полей в переменной parcel
 	pers, err := store.Get(p)
 	require.NoError(t, err)
-	assert.Equal(t, parcel.Client, pers.Client)
-	assert.Equal(t, parcel.Status, pers.Status)
-	assert.Equal(t, parcel.Address, pers.Address)
-	assert.Equal(t, parcel.CreatedAt, pers.CreatedAt)
+	parcel.Number = p
+	assert.Equal(t, parcel, pers)
 	// delete
 	// удалите добавленную посылку, убедитесь в отсутствии ошибки
 	// проверьте, что посылку больше нельзя получить из БД
@@ -60,7 +58,7 @@ func TestAddGetDelete(t *testing.T) {
 	require.NoError(t, err)
 	pers, err = store.Get(p)
 	require.Error(t, err)
-	require.Equal(t, sql.ErrNoRows, err)
+	require.ErrorIs(t, err, sql.ErrNoRows)
 }
 
 // TestSetAddress проверяет обновление адреса
@@ -152,6 +150,8 @@ func TestGetByClient(t *testing.T) {
 	require.Len(t, storedParcels, 3)
 	// check
 	for _, parcel := range storedParcels {
+		_, ok := parcelMap[parcel.Number]
+		assert.True(t, ok)
 		assert.Equal(t, parcelMap[parcel.Number], parcel)
 		// в parcelMap лежат добавленные посылки, ключ - идентификатор посылки, значение - сама посылка
 		// убедитесь, что все посылки из storedParcels есть в parcelMap
